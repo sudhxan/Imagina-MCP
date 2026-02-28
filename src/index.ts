@@ -11,7 +11,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join, resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
     resolveDomain,
@@ -25,11 +26,20 @@ import { formatFileSize } from "./services/image-validator.js";
 // ─── Assets Directory ────────────────────────────────────────────────────────
 
 /**
- * Determine the assets directory. Defaults to ./assets relative to the
- * working directory, but can be overridden via MCP_LOGO_ASSETS_DIR env var.
+ * Determine the assets directory. 
+ * Defaults to ./assets relative to the project root, 
+ * but can be overridden via MCP_LOGO_ASSETS_DIR env var.
  */
 function getAssetsDir(): string {
-    return resolve(process.env.MCP_LOGO_ASSETS_DIR || join(process.cwd(), "assets"));
+    if (process.env.MCP_LOGO_ASSETS_DIR) {
+        return resolve(process.env.MCP_LOGO_ASSETS_DIR);
+    }
+
+    // Fallback to project-root/assets
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    // Since we are in src/index.ts (or dist/index.js), PROJECT_ROOT is one level up
+    return resolve(__dirname, "..", "assets");
 }
 
 async function ensureAssetsDir(): Promise<string> {
