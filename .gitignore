@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.DS_Store
+
+# Keep the assets directory but ignore its contents (logos are downloaded per-user)
+assets/*
+!assets/.gitkeep
