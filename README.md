@@ -1,5 +1,5 @@
 # 🎨 MCP Logo Downloader
-## Just say "Download Shopify logo" in your IDE to download logos now!
+## Just say "Download Shopify logo" in your IDE to download logos now! NO API KEY REQUIRED :D
 
 > An MCP (Model Context Protocol) server that downloads high-quality company and integration logos through natural language prompts — directly from your IDE.
 
