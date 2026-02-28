@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "logo-downloader": {
+            "command": "node",
+            "args": [
+                "/Users/sudhan/Desktop/MCP_Download_Logo/dist/index.js"
+            ],
+            "env": {
+                "MCP_LOGO_ASSETS_DIR": "/Users/sudhan/Desktop/MCP_Download_Logo/assets"
+            }
+        }
+    }
+}

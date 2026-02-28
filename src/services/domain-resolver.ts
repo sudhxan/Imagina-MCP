@@ -34,6 +34,7 @@ const COMPANY_DATABASE: Record<string, CompanyEntry> = {
     ebay: { domain: "ebay.com", aliases: [], category: "E-Commerce" },
     prestashop: { domain: "prestashop.com", aliases: ["presta shop"], category: "E-Commerce" },
     volusion: { domain: "volusion.com", aliases: [], category: "E-Commerce" },
+    flipkart: { domain: "flipkart.com", aliases: [], category: "E-Commerce" },
 
     // ── CRM & Marketing ──
     hubspot: { domain: "hubspot.com", aliases: ["hub spot", "hs"], category: "CRM" },
