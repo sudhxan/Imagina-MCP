@@ -7,6 +7,7 @@
  */
 
 import { distance } from "fastest-levenshtein";
+import * as cheerio from "cheerio";
 
 // ─── Curated Company → Domain Database ──────────────────────────────────────
 
@@ -152,6 +153,7 @@ const COMPANY_DATABASE: Record<string, CompanyEntry> = {
     cursor: { domain: "cursor.com", aliases: ["cursor ai"], category: "AI" },
     perplexity: { domain: "perplexity.ai", aliases: [], category: "AI" },
     mistral: { domain: "mistral.ai", aliases: ["mistral ai"], category: "AI" },
+    elevenlabs: { domain: "elevenlabs.io", aliases: ["eleven labs", "11labs"], category: "AI" },
 
     // ── Analytics & Data ──
     googleanalytics: { domain: "analytics.google.com", aliases: ["google analytics", "ga"], category: "Analytics" },
@@ -284,8 +286,52 @@ export interface ResolvedDomain {
     domain: string;
     company: string;
     category: string;
-    confidence: "exact" | "alias" | "fuzzy" | "inferred";
+    confidence: "exact" | "alias" | "fuzzy" | "live-search" | "inferred";
     matchedName: string;
+}
+
+/**
+ * Fetch search results securely from DuckDuckGo HTML version and extract the first valid external domain.
+ */
+async function searchWebForDomain(companyName: string): Promise<string | null> {
+    const query = encodeURIComponent(`${companyName} official website`);
+    const url = `https://html.duckduckgo.com/html/?q=${query}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Cookie": "ah=wt", // disable ads
+            },
+            signal: AbortSignal.timeout(5000), // 5s timeout
+        });
+
+        if (!response.ok) return null;
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        let foundDomain: string | null = null;
+        $(".result__url").each((_, el) => {
+            const resultUrlText = $(el).text().trim();
+
+            // Clean up the display URL text
+            let cleanUrl = resultUrlText.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split('/')[0];
+
+            // Exclude wikipedia, app stores, social media, review sites
+            const exclusions = ["wikipedia.org", "linkedin.com", "facebook.com", "twitter.com", "instagram.com", "youtube.com", "apps.apple.com", "play.google.com", "g2.com", "trustpilot.com", "capterra.com", "crunchbase.com", "bloomberg.com", "forbes.com", "github.com", "duckduckgo.com"];
+
+            if (cleanUrl && !exclusions.some(ex => cleanUrl.includes(ex))) {
+                foundDomain = cleanUrl;
+                return false; // break the each loop
+            }
+        });
+
+        return foundDomain;
+    } catch (err) {
+        console.error(`Dynamic search failed for '${companyName}':`, err);
+        return null;
+    }
 }
 
 /**
@@ -303,12 +349,13 @@ function normalize(input: string): string {
  * Resolve a company name or alias to its canonical domain.
  *
  * Resolution order:
- * 1. Exact match against database keys
+ * 1. Exact match against curated database keys
  * 2. Exact match against aliases
  * 3. Fuzzy match (Levenshtein distance ≤ 2) against keys and aliases
- * 4. Smart domain inference: try {name}.com, {name}.io, {name}.dev
+ * 4. LIVE SEARCH: DuckDuckGo HTML search for official website
+ * 5. Smart domain inference: try {name}.com
  */
-export function resolveDomain(input: string): ResolvedDomain {
+export async function resolveDomain(input: string): Promise<ResolvedDomain> {
     const normalized = normalize(input);
 
     // ── 1. Exact key match ──
@@ -367,7 +414,19 @@ export function resolveDomain(input: string): ResolvedDomain {
         };
     }
 
-    // ── 4. Smart domain inference ──
+    // ── 4. Live Search (DuckDuckGo HTML) ──
+    const liveDomain = await searchWebForDomain(input);
+    if (liveDomain) {
+        return {
+            domain: liveDomain,
+            company: input,
+            category: "Unknown (Live Search)",
+            confidence: "live-search",
+            matchedName: input,
+        };
+    }
+
+    // ── 5. Smart domain inference ──
     const sanitized = normalized.replace(/\s/g, "");
     const inferredDomain = `${sanitized}.com`;
 

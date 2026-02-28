@@ -36,42 +36,42 @@ function section(title: string): void {
 
 // ─── Test: Domain Resolution ─────────────────────────────────────────────────
 
-function testDomainResolution(): void {
+async function testDomainResolution(): Promise<void> {
     section("🔍 Domain Resolution");
 
     // Exact matches
-    const shopify = resolveDomain("shopify");
+    const shopify = await resolveDomain("shopify");
     assert(shopify.domain === "shopify.com", `"shopify" → ${shopify.domain} (exact)`);
     assert(shopify.confidence === "exact", `  confidence: ${shopify.confidence}`);
 
-    const hubspot = resolveDomain("hubspot");
+    const hubspot = await resolveDomain("hubspot");
     assert(hubspot.domain === "hubspot.com", `"hubspot" → ${hubspot.domain} (exact)`);
 
-    const stripe = resolveDomain("stripe");
+    const stripe = await resolveDomain("stripe");
     assert(stripe.domain === "stripe.com", `"stripe" → ${stripe.domain} (exact)`);
 
-    const github = resolveDomain("github");
+    const github = await resolveDomain("github");
     assert(github.domain === "github.com", `"github" → ${github.domain} (exact)`);
 
     // Alias matches
-    const gh = resolveDomain("GH");
+    const gh = await resolveDomain("GH");
     assert(gh.domain === "github.com", `"GH" (alias) → ${gh.domain}`);
     assert(gh.confidence === "alias", `  confidence: ${gh.confidence}`);
 
-    const chatgpt = resolveDomain("chatgpt");
+    const chatgpt = await resolveDomain("chatgpt");
     assert(chatgpt.domain === "openai.com", `"chatgpt" (alias) → ${chatgpt.domain}`);
 
     // Fuzzy matches (intentional typos)
-    const shopifyTypo = resolveDomain("shoppify");
+    const shopifyTypo = await resolveDomain("shoppify");
     assert(shopifyTypo.domain === "shopify.com", `"shoppify" (typo) → ${shopifyTypo.domain}`);
     assert(shopifyTypo.confidence === "fuzzy", `  confidence: ${shopifyTypo.confidence}`);
 
-    const slackTypo = resolveDomain("slak");
+    const slackTypo = await resolveDomain("slak");
     assert(slackTypo.domain === "slack.com", `"slak" (typo) → ${slackTypo.domain}`);
 
-    // Inferred domain
-    const unknown = resolveDomain("unknowncompany123");
-    assert(unknown.confidence === "inferred", `"unknowncompany123" → inferred (${unknown.domain})`);
+    // Live search match (wait a bit to trace logs)
+    const unknown = await resolveDomain("a random bakery in texas");
+    assert(unknown.confidence === "live-search" || unknown.confidence === "inferred", `"random company" → live or inferred (${unknown.domain})`);
 }
 
 // ─── Test: Company Search ────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ async function testLogoDownload(): Promise<void> {
 
     for (const company of testCompanies) {
         console.log(`\n  Downloading: ${company}...`);
-        const resolved = resolveDomain(company);
+        const resolved = await resolveDomain(company);
         const result = await fetchLogo(resolved.domain, resolved.company, "large");
 
         assert(result.success === true, `${company}: download succeeded`);
@@ -179,7 +179,7 @@ async function main() {
     console.log("🧪 MCP Logo Downloader — Smoke Test Suite\n");
 
     // Unit tests (no network)
-    testDomainResolution();
+    await testDomainResolution();
     testCompanySearch();
     testImageValidation();
 

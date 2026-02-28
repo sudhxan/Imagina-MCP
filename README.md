@@ -15,11 +15,12 @@
 | Feature | Description |
 |---------|-------------|
 | 🏢 **200+ Companies** | Pre-mapped database of popular companies, integrations, and frameworks |
+| 🌐 **Dynamic Live Search** | Uses DuckDuckGo HTML search to find exact domains for *any* company not in the database |
 | 🔍 **Fuzzy Matching** | Handles typos and abbreviations ("shoppify" → Shopify, "GH" → GitHub) |
 | 🔄 **Multi-Source Fallback** | 4 cascading sources ensure near-100% success rate |
 | 🖼️ **Image Validation** | Magic byte verification rejects error pages and broken images |
 | 📦 **Bulk Downloads** | Download up to 20 logos at once with parallel processing |
-| 🔑 **Zero Configuration** | No API keys required — all sources are free and public |
+| 🔑 **Zero Configuration** | No API keys required — all sources (including search) are free and public |
 | 🗂️ **Categorized** | Browse by category: E-Commerce, CRM, Payments, Cloud, AI, and more |
 
 ## 🏗️ Architecture
@@ -30,7 +31,8 @@ User Prompt → MCP Client (IDE)
               MCP Server
                     ↓
             Domain Resolver ─── Curated DB (200+ entries)
-                    ↓              ↑ Fuzzy matching
+                    ↓              ├─ Fuzzy matching
+                    ↓              └─ DuckDuckGo Live Search
               Logo Fetcher ↓
            ┌────────┼────────┬────────┐
        Clearbit  Google   DuckDuckGo  Direct

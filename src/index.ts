@@ -80,7 +80,7 @@ server.tool(
     async ({ company, size, format }) => {
         try {
             // Resolve company name to domain
-            const resolved = resolveDomain(company);
+            const resolved = await resolveDomain(company);
             const assetsDir = await ensureAssetsDir();
 
             // Fetch the logo
@@ -275,7 +275,7 @@ server.tool(
         for (const chunk of chunks) {
             const chunkResults = await Promise.allSettled(
                 chunk.map(async (company) => {
-                    const resolved = resolveDomain(company);
+                    const resolved = await resolveDomain(company);
                     const result = await fetchLogo(resolved.domain, resolved.company, size);
 
                     if (result.success && result.logo) {
