@@ -4,6 +4,9 @@ dist/
 .env
 .DS_Store
 
+# Test artifacts
+test/_test_assets/
+
 # Keep the assets directory but ignore its contents (logos are downloaded per-user)
 assets/*
 !assets/.gitkeep
